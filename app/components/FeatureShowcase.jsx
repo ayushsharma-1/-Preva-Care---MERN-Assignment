@@ -64,31 +64,7 @@ export default function FeatureShowcase() {
       const img = new Image();
       img.src = f.imageUrl;
     });
-
-    const el = sectionRef.current;
-    if (!el) return;
-
-    const onScroll = () => {
-      if (scrollPausedRef.current) return;
-      const rect = el.getBoundingClientRect();
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      const totalScrollable = el.offsetHeight - viewportHeight;
-      const progressRaw = clamp((0 - rect.top) / (totalScrollable || 1), 0, 1);
-      const index = clamp(Math.floor(progressRaw * num), 0, num - 1);
-      setActiveIndex(index);
-    };
-
-    let rafId = null;
-    const loop = () => {
-      onScroll();
-      rafId = window.requestAnimationFrame(loop);
-    };
-    rafId = window.requestAnimationFrame(loop);
-
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, [num]);
+  }, []);
 
   const pauseScroll = () => {
     scrollPausedRef.current = true;
