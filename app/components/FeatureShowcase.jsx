@@ -53,6 +53,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 export default function FeatureShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [arrowDisabled, setArrowDisabled] = useState(false);
+  const debounceTimer = useRef(null);
   const sectionRef = useRef(null);
 
   const num = FEATURES.length;
@@ -88,22 +89,23 @@ export default function FeatureShowcase() {
     };
   }, [num]);
 
-  // Debounce arrow clicks and keyboard navigation
-  const debounce = (fn, delay = 250) => {
-    let timer;
-    return (...args) => {
-      if (timer) return;
-      fn(...args);
-      setArrowDisabled(true);
-      timer = setTimeout(() => {
-        setArrowDisabled(false);
-        timer = null;
-      }, delay);
-    };
+  // Debounce arrow clicks and keyboard navigation using useRef
+  const handleArrow = (direction) => {
+    if (arrowDisabled) return;
+    setArrowDisabled(true);
+    if (direction === 'prev') {
+      setActiveIndex((i) => clamp(i - 1, 0, num - 1));
+    } else {
+      setActiveIndex((i) => clamp(i + 1, 0, num - 1));
+    }
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setArrowDisabled(false);
+    }, 250);
   };
 
-  const prev = debounce(() => setActiveIndex((i) => clamp(i - 1, 0, num - 1)));
-  const next = debounce(() => setActiveIndex((i) => clamp(i + 1, 0, num - 1)));
+  const prev = () => handleArrow('prev');
+  const next = () => handleArrow('next');
 
   useEffect(() => {
     const onKey = (e) => {
@@ -113,7 +115,7 @@ export default function FeatureShowcase() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [arrowDisabled, next, prev]);
+  }, [arrowDisabled]);
 
   // ...existing code...
 
