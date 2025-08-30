@@ -52,8 +52,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 export default function FeatureShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [arrowDisabled, setArrowDisabled] = useState(false);
-  const debounceTimer = useRef(null);
+  // ...existing code...
   const sectionRef = useRef(null);
 
   const num = FEATURES.length;
@@ -89,33 +88,17 @@ export default function FeatureShowcase() {
     };
   }, [num]);
 
-  // Debounce arrow clicks and keyboard navigation using useRef
-  const handleArrow = (direction) => {
-    if (arrowDisabled) return;
-    setArrowDisabled(true);
-    if (direction === 'prev') {
-      setActiveIndex((i) => clamp(i - 1, 0, num - 1));
-    } else {
-      setActiveIndex((i) => clamp(i + 1, 0, num - 1));
-    }
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      setArrowDisabled(false);
-    }, 250);
-  };
-
-  const prev = () => handleArrow('prev');
-  const next = () => handleArrow('next');
+  const prev = () => setActiveIndex((i) => clamp(i - 1, 0, num - 1));
+  const next = () => setActiveIndex((i) => clamp(i + 1, 0, num - 1));
 
   useEffect(() => {
     const onKey = (e) => {
-      if (arrowDisabled) return;
       if (e.key === "ArrowRight") next();
       if (e.key === "ArrowLeft") prev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [arrowDisabled]);
+  }, []);
 
   // ...existing code...
 
@@ -146,7 +129,7 @@ export default function FeatureShowcase() {
               className="arrow"
               aria-label="Previous feature"
               onClick={prev}
-              disabled={activeIndex === 0 || arrowDisabled}
+              disabled={activeIndex === 0}
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") prev(); }}
             >
@@ -157,7 +140,7 @@ export default function FeatureShowcase() {
               className="arrow"
               aria-label="Next feature"
               onClick={next}
-              disabled={activeIndex === num - 1 || arrowDisabled}
+              disabled={activeIndex === num - 1}
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") next(); }}
             >
