@@ -52,6 +52,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 export default function FeatureShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [arrowDisabled, setArrowDisabled] = useState(false);
   const sectionRef = useRef(null);
 
   const num = FEATURES.length;
@@ -87,17 +88,34 @@ export default function FeatureShowcase() {
     };
   }, [num]);
 
+  // Debounce arrow clicks and keyboard navigation
+  const debounce = (fn, delay = 250) => {
+    let timer;
+    return (...args) => {
+      if (timer) return;
+      fn(...args);
+      setArrowDisabled(true);
+      timer = setTimeout(() => {
+        setArrowDisabled(false);
+        timer = null;
+      }, delay);
+    };
+  };
+
+  const prev = debounce(() => setActiveIndex((i) => clamp(i - 1, 0, num - 1)));
+  const next = debounce(() => setActiveIndex((i) => clamp(i + 1, 0, num - 1)));
+
   useEffect(() => {
     const onKey = (e) => {
+      if (arrowDisabled) return;
       if (e.key === "ArrowRight") next();
       if (e.key === "ArrowLeft") prev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeIndex]);
+  }, [arrowDisabled, next, prev]);
 
-  const prev = () => setActiveIndex((i) => clamp(i - 1, 0, num - 1));
-  const next = () => setActiveIndex((i) => clamp(i + 1, 0, num - 1));
+  // ...existing code...
 
   const active = useMemo(() => FEATURES[activeIndex], [activeIndex]);
 
@@ -122,11 +140,25 @@ export default function FeatureShowcase() {
               ))}
           </ul>
           <div className="feature-arrows">
-            <button className="arrow" aria-label="Previous feature" onClick={prev} disabled={activeIndex === 0}>
+            <button
+              className="arrow"
+              aria-label="Previous feature"
+              onClick={prev}
+              disabled={activeIndex === 0 || arrowDisabled}
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") prev(); }}
+            >
               ←
             </button>
             <div className="divider" />
-            <button className="arrow" aria-label="Next feature" onClick={next} disabled={activeIndex === num - 1}>
+            <button
+              className="arrow"
+              aria-label="Next feature"
+              onClick={next}
+              disabled={activeIndex === num - 1 || arrowDisabled}
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") next(); }}
+            >
               →
             </button>
           </div>
