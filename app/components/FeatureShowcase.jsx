@@ -52,6 +52,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 export default function FeatureShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const scrollPausedRef = useRef(false);
   // ...existing code...
   const sectionRef = useRef(null);
 
@@ -68,6 +69,7 @@ export default function FeatureShowcase() {
     if (!el) return;
 
     const onScroll = () => {
+      if (scrollPausedRef.current) return;
       const rect = el.getBoundingClientRect();
       const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
       const totalScrollable = el.offsetHeight - viewportHeight;
@@ -88,8 +90,20 @@ export default function FeatureShowcase() {
     };
   }, [num]);
 
-  const prev = () => setActiveIndex((i) => clamp(i - 1, 0, num - 1));
-  const next = () => setActiveIndex((i) => clamp(i + 1, 0, num - 1));
+  const pauseScroll = () => {
+    scrollPausedRef.current = true;
+    setTimeout(() => {
+      scrollPausedRef.current = false;
+    }, 700); // Pause scroll updates for 700ms after click
+  };
+  const prev = () => {
+    setActiveIndex((i) => clamp(i - 1, 0, num - 1));
+    pauseScroll();
+  };
+  const next = () => {
+    setActiveIndex((i) => clamp(i + 1, 0, num - 1));
+    pauseScroll();
+  };
 
   useEffect(() => {
     const onKey = (e) => {
